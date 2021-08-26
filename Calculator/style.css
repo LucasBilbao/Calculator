@@ -72,12 +72,18 @@ body{
   font-size: 2.5rem;
 }
 
-@media screen and ( max-width: 900px ) {
-  .calc-grid-wrapper{
-    position: relative;
-    top: 0;
-    left: 0;
+@media screen and ( max-width: 400px ) {
+  body{
+    background: linear-gradient(180Deg, #0295df, #00df5d);
+  }
 
+  .output{
+    opacity: 1;
+  }
+
+  .calc-grid-wrapper{
+    justify-content: left;
+    align-content: flex-start;
 
     min-width: 100vw;
   }
