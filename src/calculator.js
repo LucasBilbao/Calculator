@@ -1,6 +1,9 @@
-const BASE_URL = 'https://calculator-api-2m8f.onrender.com/api/v1/calculator';
+import axios from 'axios';
+import { URL } from '../utils/constants';
+import { composedXML } from './composedXML';
+import { getResultFromXML } from './getResultFromXML';
 
-class Calculator {
+export class Calculator {
   constructor(previousOperandTxt, currentOperandTxt) {
     this.previousOperandTxt = previousOperandTxt;
     this.currentOperandTxt = currentOperandTxt;
@@ -62,19 +65,19 @@ class Calculator {
     if (!(isNaN(prev) || isNaN(current))) {
       switch (this.operation) {
         case '+':
-          computation = await this.fetchResult('/add', { num1: prev, num2: current });
+          computation = await this.fetchResult('Add', { a: prev, b: current });
           break;
         case '-':
-          computation = await this.fetchResult('/subtract', { num1: prev, num2: current });
+          computation = await this.fetchResult('Subtract', { a: prev, b: current });
           break;
         case '*':
-          computation = await this.fetchResult('/multiply', { num1: prev, num2: current });
+          computation = await this.fetchResult('Multiply', { a: prev, b: current });
           break;
         case '÷':
-          computation = await this.fetchResult('/divide', { num1: prev, num2: current });
+          computation = await this.fetchResult('Divide', { a: prev, b: current });
           break;
         case '^':
-          computation = await this.fetchResult('/power', { num: prev, power: current });
+          computation = await this.fetchResult('Power', { num: prev, power: current });
           break;
         default:
           return;
@@ -83,7 +86,7 @@ class Calculator {
 
     // for some reason switch does not work with '√' so I wrote an extra "if"
     if (this.operation === '√') {
-      computation = await this.fetchResult('/sqr-root', { num: prev });
+      computation = await this.fetchResult('SqrRoot', { num: prev });
     }
 
     this.currentOperand = this.resultLengthCheck(computation.toString());
@@ -92,7 +95,8 @@ class Calculator {
   }
 
   fetchResult(operation, query) {
-    return axios.post(`${BASE_URL}/${operation}`, query).then(({ data }) => data.result);
+    const xml = composedXML(operation, query);
+    return axios.post(URL, xml).then(getResultFromXML);
   }
 
   checkError(current, prev) {
@@ -193,44 +197,3 @@ class Calculator {
     }
   }
 }
-
-// Assign all the buttons and input output
-const previousOperandTxt = document.querySelector('[data-previous-operand]');
-const currentOperandTxt = document.querySelector('[data-current-operand]');
-const clearBtn = document.querySelector('[data-clear]');
-const deleteBtn = document.querySelector('[data-delete]');
-const operationBtn = document.querySelectorAll('[data-operation]');
-const numberBtn = document.querySelectorAll('[data-number]');
-const equalsBtn = document.querySelector('[data-equals]');
-const minusBtn = document.querySelector('[data-minus]');
-
-const calculator = new Calculator(previousOperandTxt, currentOperandTxt);
-
-numberBtn.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    calculator.appendNum(btn.innerHTML);
-    calculator.updateDisplay();
-  });
-});
-
-operationBtn.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    calculator.chooseOperation(btn.innerHTML);
-    calculator.updateDisplay();
-  });
-});
-
-clearBtn.addEventListener('click', () => {
-  calculator.clear();
-  calculator.updateDisplay();
-});
-
-equalsBtn.addEventListener('click', async () => {
-  await calculator.compute();
-  calculator.updateDisplay();
-});
-
-deleteBtn.addEventListener('click', () => {
-  calculator.delete();
-  calculator.updateDisplay();
-});
